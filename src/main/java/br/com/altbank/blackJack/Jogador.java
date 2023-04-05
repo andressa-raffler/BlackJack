@@ -34,4 +34,19 @@ public class Jogador {
     public void setNome(String nome){
         this.nome = nome;
     }
-}
+
+
+    public void verificaSeJogadorEstourou(){
+        String status;
+        if (pontuacao < 21) {
+                status = "ainda nao estourou";
+            } else if (pontuacao == 21) {
+                status = "atingiu 21!!";
+            } else {
+                status = "estourou!!";
+            }
+            System.out.printf("\nO/A %s %s", nome, status);
+        }
+    }
+
+

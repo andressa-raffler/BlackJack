@@ -1,10 +1,12 @@
 package br.com.altbank.blackJack;
 
 
+import lombok.Data;
 import org.springframework.stereotype.Component;
 
 import java.util.Scanner;
 @Component
+@Data
 public class Jogo {
 
 
@@ -16,16 +18,17 @@ public class Jogo {
     int numeroRodada = 0;
     int menu = 1;
     boolean novaRodada = true;
-
     boolean jogadorParou = false;
-    boolean computadorParou = true;
+    boolean computadorParou = false;
 
 
+    public Jogo(String nome){
+
+    }
 
     public Jogo() {
         mensagemBoasVindas();
         menuEntrada();
-
     }
 
     private void menuEntrada() {
@@ -51,21 +54,11 @@ public class Jogo {
             }
         }
     }
-
-    private void mensagemBoasVindas() {
-        //Boas vindas ao jogo
-        System.out.println("###################################");
-        System.out.println("#  Bem vindo ao jogo BlackJack!!  #");
-        System.out.println("###################################");
-    }
-
     //Jogar
     public void jogar() {
-        limparDados();
         iniciarJogo();
         rodadas();
     }
-
 
     //Embaralhar as cartas e iniciar o jogo
     private void iniciarJogo() {
@@ -76,11 +69,14 @@ public class Jogo {
     //Identificar jogadores
     private void identificarJogadores(int menu){
 
-        this.jogador = new Jogador();
-        this.computador = new Jogador();
+        if(jogador == null || numeroRodada == 0) {
+            this.jogador = new Jogador();
+            this.computador = new Jogador();
+        }
         if(menu == 1 ) {
             System.out.println("Digite seu nome");
-            jogador.setNome(scanner.nextLine());
+            String nomeScanner = scanner.nextLine();
+            jogador.setNome(nomeScanner);
             if (jogador.getNome().equals("Computador")) {
                 System.out.println("Nome inválido");
                 identificarJogadores(1);
@@ -91,12 +87,28 @@ public class Jogo {
         }
     }
 
+    private void nomearJogadores(){
+
+        this.jogador = new Jogador();
+        this.computador = new Jogador();
+        System.out.println("Digite seu nome");
+        String nomeScanner = scanner.nextLine();
+        jogador.setNome(nomeScanner);
+        if (jogador.getNome().equals("Computador")) {
+            System.out.println("Nome inválido");
+            nomearJogadores();
+
+        }
+    }
+
+
     private void limparDados() {
+        this.jogador = new Jogador();
+        this.computador = new Jogador();
         jogadorParou = false;
         computadorParou = false;
         numeroRodada = 0;
         novaRodada = true;
-
     }
 
     //Nova rodada
@@ -107,166 +119,190 @@ public class Jogo {
             if(pegarMaisUmaCarta()) {
                 jogadorDaVez.segurarCarta(baralho.puxarCarta());
             }
-            exibirDetalhes();
-            verificarSePontuacaoEstourou();
+            imprimirCartas();
+            verificarPontuacao();
             if(!novaRodada){
                 verificarQuemVenceu();
                 desejaJogarNovamente();
             }
         }
-
     }
 
     private void desejaJogarNovamente() {
         System.out.println("\nDeseja jogar novamente? (S/N)");
         String resposta = scanner.nextLine();
-        if(resposta.equalsIgnoreCase("s")){
-           menuEntrada();
+        if(resposta.equalsIgnoreCase("s") || resposta.equalsIgnoreCase("sim")){
+            limparDados();
+            menuEntrada();
         } else {
             novaRodada = false;
-            System.out.println("\n###################################");
-            System.out.println("#  Obrigado por jogar BlackJack!! #");
-            System.out.println("###################################");
+            mensagemAgradecimento();
         }
     }
 
+    private void imprimirCartas() {
+        if (numeroRodada >= 4) { //Mostrar as cartas somente após dadas as 4 primeiras cartas
+            imprimirCartasComputador();
+            imprimirCartasJogador();
+        }
+    }
+    private void imprimirCartasComputador(){
+        if(!jogadorParou){
+            mensagemMesa();
+            System.out.print("MAO COMPUTADOR: " + computador.getMao().get(0).getNumerosCartas().getNome() + " "
+                    + computador.getMao().get(0).getNaipesCartas().getSimboloNaipe() + ", ");
+            for (int i = 1; i < computador.getMao().size(); i++) {
+                System.out.print("XX, ");
+            }
+            System.out.println("PONTUAÇAO : " + computador.getMao().get(0).getNumerosCartas().getValor());
+        }
+        else if (jogadorParou || !novaRodada){
+            mensagemMesa();
+            System.out.print("MAO COMPUTADOR: ");
+            for (Carta carta : computador.getMao()) {
+                System.out.print(carta.getNumerosCartas().getNome()+" "
+                        +carta.getNaipesCartas().getSimboloNaipe()+", ");
+            }
+            System.out.println("PONTUAÇAO : " + computador.getPontuacao());
+        }
+    }
 
-    //Verificar se pontuaçao estourou 21
-    private void verificarSePontuacaoEstourou() {
+    private void imprimirCartasJogador(){
+        System.out.print("MAO " + jogador.getNome().toUpperCase() + ": ");
+        for (Carta carta : jogador.getMao()) {
+            System.out.print(carta.getNumerosCartas().getNome() + " " + carta.getNaipesCartas().getSimboloNaipe() +", ");
+        }
+        System.out.print("PONTUAÇAO: " + jogador.getPontuacao());
+        System.out.println();
+    }
+
+
+    public void verificarPontuacao(){
         if(numeroRodada > 4) {
-            verificarSeEstourou();
+            jogadorDaVez.verificaSeJogadorEstourou();
+            if(jogadorDaVez.getPontuacao() > 21) {
+                jogadorParou = true;
+                novaRodada = false;
+            }
         }
     }
 
-    private void exibirDetalhes() {
-        if (numeroRodada >= 4) {
-            System.out.println("\n###################################");
-            System.out.println("#####           MESA          #####");
-            System.out.println("###################################");
-            System.out.println();
-            if(!jogadorParou){
-                System.out.print("MAO COMPUTADOR: " + computador.getMao().get(0).getNumerosCartas().getNome() + " "
-                        + computador.getMao().get(0).getNaipesCartas().getSimboloNaipe() + ", ");
-                for (int i = 1; i < computador.getMao().size(); i++) {
-                    System.out.print("XX, ");
-                }
-                    System.out.println("PONTUAÇAO : " + computador.getMao().get(0).getNumerosCartas().getValor());
-            }
-            else if(jogadorParou) {
-                System.out.print("MAO COMPUTADOR: ");
-                for (Carta carta : computador.getMao()) {
-                    System.out.print(carta.getNumerosCartas().getNome()+" "
-                                    +carta.getNaipesCartas().getSimboloNaipe()+", ");
-                }
-                System.out.println("PONTUAÇAO : " + computador.getPontuacao());
-            }
-
-            System.out.print("\nMAO " + jogador.getNome().toUpperCase() + ": ");
-            for (Carta carta : jogador.getMao()) {
-                System.out.print(carta.getNumerosCartas().getNome() + " " + carta.getNaipesCartas().getSimboloNaipe() +", ");
-            }
-            System.out.print("PONTUAÇAO: " + jogador.getPontuacao());
-            System.out.println();
-            System.out.println();
-            System.out.println();
-        }
-    }
-
-
-    private void verificarSeEstourou() {
-        if(jogadorDaVez.getPontuacao() > 21){
-            System.out.println(jogadorDaVez.getNome()+" estourou!!");
-            novaRodada = false;
-        }
-    }
 
     private void verificarQuemVenceu(){
         if(computador.getPontuacao() > 21 && jogador.getPontuacao() > 21 ){
-            System.out.println("Os dois estouraram!!");
+            mensagemFimDeJogo();
+            System.out.println("\nOs dois estouraram!!");
             return;
         }
         else if(computador.getPontuacao() > 21){
-            System.out.println("O/A "+jogador.getNome()+" venceu!!");
+            mensagemFimDeJogo();
+            System.out.println("\nO/A "+jogador.getNome()+" venceu!!");
             return;
         }
         else if(jogador.getPontuacao() > 21){
-            System.out.println("O computador venceu!!");
+            mensagemFimDeJogo();
+            System.out.println("\nO computador venceu!!");
             return;
         }
         else if(computador.getPontuacao() == jogador.getPontuacao()){
-            System.out.println("Houve um empate!!");
+            mensagemFimDeJogo();
+            System.out.println("\nHouve um empate!!");
         }
         else if(computador.getPontuacao() > jogador.getPontuacao()){
-            System.out.println("O Computador venceu!");
+            mensagemFimDeJogo();
+            System.out.println("\nO Computador venceu!");
         }
         else {
-            System.out.println("O/A "+jogador.getNome()+" venceu!");
+            mensagemFimDeJogo();
+            System.out.println("\nO/A "+jogador.getNome()+" venceu!");
         }
     }
 
+    //Identificar o jogador da rodada
     private void identificarJogadorDaVez(){
-        if (numeroRodada == 1 || numeroRodada == 2){
-            jogadorDaVez = computador;
-            return;
+
+        switch (numeroRodada) {
+            case 1,2 -> jogadorDaVez = computador;
+            case 3,4 -> jogadorDaVez = jogador;
+            case 5 -> {
+                      jogadorDaVez = jogador;
+                      imprimirRodada(); }
+            case 6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24 -> jogadasIntercaladas();
         }
-        if (numeroRodada >= 3 && numeroRodada <=5 && !jogadorParou){
-            jogadorDaVez = jogador;
-        }
+    }
+
+    //Passar a vez para o outro jogador, ou continuar caso o outro já tenha parado
+    private void jogadasIntercaladas(){
         if (jogadorParou && computadorParou){
             novaRodada = false;
             return;
         }
         if(jogadorParou){
             jogadorDaVez = computador;
-            System.out.println("RODADA " + numeroRodada + " VEZ DO COMPUTADOR");
+            imprimirRodada();
             return;
         }
         if(computadorParou){
             jogadorDaVez = jogador;
-            System.out.println("RODADA " + numeroRodada + " VEZ DO/A " + jogadorDaVez.getNome().toUpperCase());
+            imprimirRodada();
             return;
         }
         if (numeroRodada > 5 && !jogadorParou){    //Passar a vez para o outro jogador
             if(jogadorDaVez.getNome().equals("Computador")){
                 jogadorDaVez = jogador;
-                System.out.println("RODADA " + numeroRodada + " VEZ DO/A " + jogadorDaVez.getNome().toUpperCase());
+                imprimirRodada();
             }else {
                 jogadorDaVez = computador;
-                System.out.println("RODADA " + numeroRodada + " VEZ DO/A " + jogadorDaVez.getNome().toUpperCase());
+                imprimirRodada();
             }
         }
     }
+
+    //Imprimir no console o nome do jogador da vez
+    private void imprimirRodada(){
+        System.out.println("\n");
+        System.out.println("\nVEZ DO/A " + jogadorDaVez.getNome().toUpperCase());
+    }
+
 
     private boolean pegarMaisUmaCarta(){
-        Boolean comando;
-        if(numeroRodada >=1 && numeroRodada <= 4){ //primeiras 2 cartas sao obrigatórias
-            return true;
+
+        switch (numeroRodada) {
+            case 1,2,3,4 -> { return true; } //primeiras 2 cartas de cada jogador sao obrigatórias
         }
-        if (!jogadorDaVez.getNome().equals("Computador") && !jogadorParou){
-            if(jogadorDaVez.getPontuacao() >21 ){ //se maior do que 21 para automaticamente
-                jogadorParou = true;
+        if(vezDoComputador()){
+            if(temMaisDe17Pontos()){
+                computadorParou = true; //computador para quando atingir 17 pontos
                 return false;
             }
-            System.out.println("Deseja mais uma carta? S/N");
-            String input = scanner.nextLine();
-            comando = validarComandoEntrada(input);
-            if(comando.equals(true)){
-                return true;
-            }else { //se o usuário digitar N é porque deseja parar
+        }else if (!jogadorParou){
+            if (temMaisDe21Pontos() || !usuarioDesejaMaisUmaCarta()){
                 jogadorParou = true;
                 return false;
             }
         }
-        if(jogadorDaVez.getNome().equals("Computador") && computador.getPontuacao() < 17){
-            return true;
-        }
-        if(jogadorDaVez.getNome().equals("Computador") && computador.getPontuacao() >= 17 ){
-            computadorParou = true; //computador para quando atingir 17 pontos
-            return false;
-        }
-        return false;
+        return true;
     }
 
+    private boolean vezDoComputador(){
+        return  (jogadorDaVez.getNome().equals("Computador"));
+    }
+
+    private boolean temMaisDe17Pontos(){
+        return (computador.getPontuacao() >= 17 ) ;
+    }
+
+    private boolean temMaisDe21Pontos(){
+        return (jogador.getPontuacao() > 21);
+    }
+
+    private boolean usuarioDesejaMaisUmaCarta(){
+        System.out.println("Deseja mais uma carta? S/N");
+        String input = scanner.nextLine();
+        return validarComandoEntrada(input);
+    }
+
+    //Validar resposta do usuário
     private Boolean validarComandoEntrada(String comandoEntrada) {
         if (comandoEntrada.equalsIgnoreCase("S") || comandoEntrada.equalsIgnoreCase("Sim")){
             return true;
@@ -279,6 +315,31 @@ public class Jogo {
         return false;
     }
 
+
+    private void mensagemBoasVindas() {
+        System.out.println("\n###################################");
+        System.out.println("#  Bem vindo ao jogo BlackJack!!  #");
+        System.out.println("###################################");
+    }
+
+    private void mensagemMesa() {
+        System.out.println("\n###################################");
+        System.out.println("#####           MESA          #####");
+        System.out.println("###################################");
+    }
+
+    private void mensagemFimDeJogo(){
+        imprimirCartas();
+        System.out.println("\n###################################");
+        System.out.println("##          FIM DE JOGO          ##");
+        System.out.println("###################################");
+    }
+
+    private void mensagemAgradecimento(){
+        System.out.println("\n###################################");
+        System.out.println("#  Obrigado por jogar BlackJack!! #");
+        System.out.println("###################################");
+    }
 
 }
 

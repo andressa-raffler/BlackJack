@@ -8,8 +8,7 @@ import org.springframework.stereotype.Component;
 
 
 @Getter
-@Component
-@AllArgsConstructor
+
 public enum NaipesCartas {
     PAUS ("Paus", "♣"),
     COPAS ("Copas", "♥"),
@@ -21,6 +20,10 @@ public enum NaipesCartas {
     private final String simboloNaipe;
 
 
+    private NaipesCartas(String nomeNaipe, String simboloNaipe){
+        this.nomeNaipe = nomeNaipe;
+        this.simboloNaipe = simboloNaipe;
+    }
 
 
 }

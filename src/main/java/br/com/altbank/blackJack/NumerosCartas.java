@@ -4,8 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.stereotype.Component;
 
-@Component
-@AllArgsConstructor
+
+
 @Getter
 public enum NumerosCartas {
     DOIS("Dois", 2),
@@ -24,6 +24,11 @@ public enum NumerosCartas {
 
     private final String nome;
     private final int valor;
+
+    private NumerosCartas(String nome, int valor){
+        this.nome = nome;
+        this.valor = valor;
+    }
 
 
 }
