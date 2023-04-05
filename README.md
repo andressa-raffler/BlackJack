@@ -1,3 +1,6 @@
+# ♣♠♥♦ BLACKJACK 21 ♣♠♥♦
+
+
 ## PRÉ REQUISITOS
 
 Para inicializar o jogo será necessária a instalação das seguintes ferramentas:
