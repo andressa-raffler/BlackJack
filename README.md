@@ -5,8 +5,8 @@
 
 Para inicializar o jogo será necessária a instalação das seguintes ferramentas:
 
-- [Java](https://www.java.com/en/download/help/download_options.html)
-- [maven](https://maven.apache.org/download.cgi)
+- [Java](https://www.java.com/en/download/help/download_options.html) - Versao 20
+- [maven](https://maven.apache.org/download.cgi) - Versao 3.8.6 ou superior
 
 ## INICIALIZAR O JOGO
 
