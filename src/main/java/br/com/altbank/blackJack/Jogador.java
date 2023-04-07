@@ -3,19 +3,25 @@ package br.com.altbank.blackJack;
 
 
 import lombok.Getter;
-import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 
 @Getter
-@Component
 public class Jogador {
 
     private String nome;
     private ArrayList<Carta> mao = new ArrayList<>();
     private int pontuacao;
     private int jogadas;
+    private boolean parou = false;
 
+
+    public String getNome(){
+        if(nome == null){
+            return "Player1";
+        }
+        return nome;
+    }
 
     public void segurarCarta(Carta carta) {
         mao.add(carta);
@@ -35,6 +41,9 @@ public class Jogador {
         this.nome = nome;
     }
 
+    public void setParou(boolean parou) {
+        this.parou = parou;
+    }
 
     public void verificaSeJogadorEstourou(){
         String status;

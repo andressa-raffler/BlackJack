@@ -18,12 +18,9 @@ public class Jogo {
     int numeroRodada = 0;
     int menu = 1;
     boolean novaRodada = true;
-    boolean jogadorParou = false;
-    boolean computadorParou = false;
 
 
     public Jogo(String nome){
-
     }
 
     public Jogo() {
@@ -37,23 +34,31 @@ public class Jogo {
             System.out.println("\n1 - Identificar-se");
             System.out.println("2 - Iniciar Jogo");
             System.out.println("0 - Sair");
-            menu = scanner.nextInt();
-            scanner.nextLine();
+            try {
+                String menuString = scanner.nextLine();
+                menu = Integer.parseInt(menuString);
+            } catch (Exception e){
+                System.out.println("Menu inválido! Tente novamente.");
+                menuEntrada();
+            }
             if(menu == 1){
-                identificarJogadores(menu);
+                inicializarJogadores();
+                identificarJogadores();
                 menu = 2;
             }
             if(menu == 2) {
                 novaRodada = true;
                 System.out.println("\nCOMEÇANDO O JOGO!");
-                identificarJogadores(menu);
+                inicializarJogadores();
+                identificaComputador();
                 jogar();
             }
-            if(menu > 2){
-                System.out.println("Menu inválido!");
+            if(menu > 2) {
+                System.out.println("Menu inválido! Tente novamente.");
             }
         }
     }
+
     //Jogar
     public void jogar() {
         iniciarJogo();
@@ -66,26 +71,35 @@ public class Jogo {
          baralho.embaralhar();
     }
 
-    //Identificar jogadores
-    private void identificarJogadores(int menu){
-
+    //Inicializar jogadores
+    private void inicializarJogadores(){
         if(jogador == null || numeroRodada == 0) {
             this.jogador = new Jogador();
             this.computador = new Jogador();
-        }
-        if(menu == 1 ) {
-            System.out.println("Digite seu nome");
-            String nomeScanner = scanner.nextLine();
-            jogador.setNome(nomeScanner);
-            if (jogador.getNome().equals("Computador")) {
-                System.out.println("Nome inválido");
-                identificarJogadores(1);
-            }
-        }else if (menu == 2 && jogador.getNome() == null){
-            jogador.setNome("Player1");
-            computador.setNome("Computador");
+
         }
     }
+
+
+    //Identificar jogadores
+    private void identificarJogadores(){
+        identificarJogador();
+        identificaComputador();
+    }
+
+    private void identificarJogador(){
+        System.out.println("Digite seu nome");
+        String nomeScanner = scanner.nextLine();
+        jogador.setNome(nomeScanner);
+        if (jogador.getNome().equals("Computador")) {
+            System.out.println("Nome inválido");
+            identificarJogador();
+        }
+    }
+    private void identificaComputador() {
+        computador.setNome("Computador");
+    }
+
 
     private void nomearJogadores(){
 
@@ -105,8 +119,8 @@ public class Jogo {
     private void limparDados() {
         this.jogador = new Jogador();
         this.computador = new Jogador();
-        jogadorParou = false;
-        computadorParou = false;
+       // jogadorParou = false;
+       // computadorParou = false;
         numeroRodada = 0;
         novaRodada = true;
     }
@@ -147,7 +161,7 @@ public class Jogo {
         }
     }
     private void imprimirCartasComputador(){
-        if(!jogadorParou){
+        if(!jogador.isParou()){
             mensagemMesa();
             System.out.print("MAO COMPUTADOR: " + computador.getMao().get(0).getNumerosCartas().getNome() + " "
                     + computador.getMao().get(0).getNaipesCartas().getSimboloNaipe() + ", ");
@@ -156,7 +170,7 @@ public class Jogo {
             }
             System.out.println("PONTUAÇAO : " + computador.getMao().get(0).getNumerosCartas().getValor());
         }
-        else if (jogadorParou || !novaRodada){
+        else if (jogador.isParou() || !novaRodada){
             mensagemMesa();
             System.out.print("MAO COMPUTADOR: ");
             for (Carta carta : computador.getMao()) {
@@ -181,7 +195,7 @@ public class Jogo {
         if(numeroRodada > 4) {
             jogadorDaVez.verificaSeJogadorEstourou();
             if(jogadorDaVez.getPontuacao() > 21) {
-                jogadorParou = true;
+                jogadorDaVez.setParou(true);
                 novaRodada = false;
             }
         }
@@ -233,21 +247,21 @@ public class Jogo {
 
     //Passar a vez para o outro jogador, ou continuar caso o outro já tenha parado
     private void jogadasIntercaladas(){
-        if (jogadorParou && computadorParou){
+        if (jogador.isParou() && computador.isParou()){
             novaRodada = false;
             return;
         }
-        if(jogadorParou){
+        if(jogador.isParou()){
             jogadorDaVez = computador;
             imprimirRodada();
             return;
         }
-        if(computadorParou){
+        if(computador.isParou()){
             jogadorDaVez = jogador;
             imprimirRodada();
             return;
         }
-        if (numeroRodada > 5 && !jogadorParou){    //Passar a vez para o outro jogador
+        if (numeroRodada > 5 ){    //Passar a vez para o outro jogador
             if(jogadorDaVez.getNome().equals("Computador")){
                 jogadorDaVez = jogador;
                 imprimirRodada();
@@ -272,12 +286,12 @@ public class Jogo {
         }
         if(vezDoComputador()){
             if(temMaisDe17Pontos()){
-                computadorParou = true; //computador para quando atingir 17 pontos
+                computador.setParou(true); //computador para quando atingir 17 pontos
                 return false;
             }
-        }else if (!jogadorParou){
+        }else if (!jogador.isParou()){
             if (temMaisDe21Pontos() || !usuarioDesejaMaisUmaCarta()){
-                jogadorParou = true;
+                jogador.setParou(true);
                 return false;
             }
         }
